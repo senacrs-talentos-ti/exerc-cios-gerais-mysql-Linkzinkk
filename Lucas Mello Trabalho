@@ -1,0 +1,357 @@
+CREATE DATABASE STORE;
+
+
+-- 1 -----------------------------------------------------------------
+CREATE TABLE CLIENTS (
+ID INT PRIMARY KEY auto_increment,
+NOME VARCHAR(100) NOT NULL,
+EMAIL VARCHAR(100) NOT NULL
+);
+
+
+-- 2 -----------------------------------------------------------------
+CREATE TABLE PRODUCTS (
+ID INT primary KEY auto_increment,
+NOME VARCHAR(100) NOT NULL,
+PRICE DECIMAL(6, 2) NOT NULL
+);
+
+
+-- 3 -----------------------------------------------------------------
+CREATE TABLE ORDERS (
+ID INT PRIMARY KEY auto_increment,
+CLIENT_ID INT,
+ORDER_DATE DATE NOT NULL,
+TOTAL DECIMAL(6, 2) NOT NULL,
+foreign key (CLIENT_ID) REFERENCES CLIENTS(ID)
+);
+
+
+-- 4 -----------------------------------------------------------------
+CREATE TABLE ORDERS_ITEMS (
+ORDER_ID INT,
+PRODUCT_ID INT,
+QUANTIFY INT NOT NULL,
+PRICE DECIMAL(6, 2) NOT NULL,
+primary key (order_id, product_id),
+foreign key (ORDER_ID) REFERENCES ORDERS(ID),
+FOREIGN KEY (PRODUCT_ID) REFERENCES PRODUCTS(ID)
+);
+
+
+-- 5 -----------------------------------------------------------------
+INSERT INTO CLIENTS VALUES 
+(DEFAULT, 'Lucas', 'LUCAS@GMAIL.COM'),
+(DEFAULT, 'Douglas', 'DOUGLAS@GMAIL.COM'),
+(DEFAULT, 'Gabriel', 'GABRIEL@GMAIL.COM'),
+(DEFAULT, 'Josiane', 'JOSIANE@GMAIL.COM'),
+(DEFAULT, 'Vincent', 'vincent@GMAIL.COM'),
+(DEFAULT, 'Paloma', 'PALOMA@GMAIL.COM'),
+(DEFAULT, 'Arthur', 'ARTHUR@GMAIL.COM'),
+(DEFAULT, 'Bianca', 'BIANCA@GMAIL.COM'),
+(DEFAULT, 'David', 'DAVID@GMAIL.COM'),
+(DEFAULT, 'Gemaplys', 'BONDA@GMAIL.COM'),
+(DEFAULT, 'OMNI MAN', 'AAAAAAAAA@GMAIL.COM');
+
+
+-- 5 -----------------------------------------------------------------
+INSERT INTO PRODUCTS VALUES
+(DEFAULT, 'Maçã', 1.25),
+(DEFAULT, 'Banana', 2.05),
+(DEFAULT, 'Uva', 5.10),
+(DEFAULT, 'Pera', 3.20),
+(DEFAULT, 'Goiaba', 2.10),
+(DEFAULT, 'Figo', 3.50),
+(DEFAULT, 'Carambola', 5.25),
+(DEFAULT, 'Caqui', 4.50),
+(DEFAULT, 'Maracujá', 5.10),
+(DEFAULT, 'Melancia', 10.25),
+(DEFAULT, 'Bolo de morango do mine', 45.05);
+
+
+-- 6 -----------------------------------------------------------------
+INSERT INTO ORDERS (client_id, order_date, total) VALUES
+(1, '2024-08-01', 15.50),
+(2, '2024-08-02', 25.75),
+(3, '2024-08-03', 12.60),
+(4, '2024-08-04', 18.90),
+(5, '2024-08-05', 30.40),
+(6, '2024-08-06', 22.30),
+(7, '2024-08-07', 14.85),
+(8, '2024-08-08', 28.10),
+(9, '2024-08-09', 33.45),
+(10, '2024-08-10', 20.20);
+
+insert into orders (client_id, order_date, total) VALUES
+(1,'2024-06-01', 45.05);
+
+-- 7 -----------------------------------------------------------------
+INSERT INTO ORDERS_ITEMS (order_id, product_id, quantify, price) VALUES
+(1, 1, 5, 1.25),   -- Order 1: 5 maçãs de $1.25 
+(1, 2, 3, 2.05),   -- Order 1: 3 Bananas de $2.05 
+(2, 3, 2, 5.10),   -- Order 2: 2 uvas de $5.10 
+(2, 4, 1, 3.20),   -- Order 2: 1 Pera de $3.20 
+(3, 5, 4, 2.10),   -- Order 3: 4 Goiabas de $2.10 
+(3, 6, 2, 3.50),   -- Order 3: 2 Figo de $3.50 
+(4, 7, 1, 5.25),   -- Order 4: 1 carambolas de $5.25 
+(4, 8, 3, 4.50),   -- Order 4: 3 caquis de $4.50 
+(5, 9, 6, 5.10),   -- Order 5: 6 maracujá de $5.10 
+(5, 10, 1, 10.25); -- Order 5: 1 melancia de $10.25 
+
+insert into orders_items (order_id, product_id, quantify, price) VALUES
+(1, 11, 1, 45.05);
+
+
+-- 8 -----------------------------------------------------------------
+update products set price = 10.50 where id = 10;
+update orders set TOTAL = 27.95 where id = 1;
+update orders set total = 31.05 where id = 2;
+update orders_items set price = 10.50 where product_id = 10;
+
+
+-- 9 -----------------------------------------------------------------
+DELETE FROM orders_items 
+WHERE
+    order_id = 2;
+DELETE FROM orders 
+WHERE
+    id = 2;
+DELETE FROM clients 
+WHERE
+    id = 2;
+
+
+-- 10 -----------------------------------------------------------------
+alter table clients add column birthday date;
+
+
+-- 11 -----------------------------------------------------------------
+SELECT 
+    ORDERS.id AS order_id,
+    CLIENTS.NOME AS client_name,
+    PRODUCTS.NOME AS product_name,
+    ORDERS_ITEMS.quantify,
+    ORDERS_ITEMS.price
+FROM 
+    ORDERS
+JOIN 
+    CLIENTS ON ORDERS.client_id = CLIENTS.id
+JOIN 
+    ORDERS_ITEMS ON ORDERS.id = ORDERS_ITEMS.order_id
+JOIN 
+    PRODUCTS ON ORDERS_ITEMS.product_id = PRODUCTS.id
+ORDER BY 
+    ORDERS.id, PRODUCTS.NOME;
+
+
+-- 12 -----------------------------------------------------------------
+SELECT 
+    clients.id AS client_id,
+    clients.NOME AS client_name,
+    orders.CLIENT_ID AS order_client_id,
+    orders.ORDER_DATE AS order_date,
+    orders.total AS order_total
+FROM
+    clients
+    LEFT JOIN orders ON clients.id = orders.CLIENT_ID;
+
+
+-- 13 -----------------------------------------------------------------
+SELECT 
+    PRODUCTS.ID,
+    PRODUCTS.NOME,
+    ORDERS.ID,
+    ORDERS.ORDER_DATE,
+    orders_items.QUANTIFY,
+    ORDERS_ITEMS.PRICE
+FROM
+    products
+        RIGHT JOIN
+    ORDERS_ITEMS ON PRODUCTS.ID = ORDERS_ITEMS.PRODUCT_ID
+        LEFT JOIN
+    ORDERS ON ORDERS_ITEMS.ORDER_ID = ORDERS.ID;
+
+
+-- 14 -----------------------------------------------------------------
+SELECT 
+    SUM(ORDERS_ITEMS.quantify * ORDERS_ITEMS.PRICE) AS TOTAL_SALES,
+    SUM(ORDERS_ITEMS.QUANTIFY) TOTAL_QUANTIFY_SOLD
+FROM
+    ORDERS_ITEMS;
+
+
+-- 15 -----------------------------------------------------------------
+SELECT 
+    CLIENTS.id AS ID_Clients,
+    CLIENTS.nome AS Name_Clients,
+    COUNT(ORDERS.id) AS Total_Orders
+FROM 
+    CLIENTS
+LEFT JOIN 
+    ORDERS ON CLIENTS.id = ORDERS.client_id
+GROUP BY 
+    CLIENTS.id, CLIENTS.nome
+ORDER BY 
+    total_orders DESC;
+    
+    
+-- 16 -----------------------------------------------------------------
+SELECT 
+    CLIENTS.id AS client_id,
+    CLIENTS.NOME AS client_name,
+    SUM(orders_items.quantify * ORDERS_items.price) AS total
+FROM 
+    CLIENTS
+LEFT JOIN 
+    ORDERS ON CLIENTS.id = ORDERS.client_id
+LEFT JOIN 
+    orders_items ON ORDERS.id = ORDERS_ITEMS.order_id
+GROUP BY 
+    CLIENTS.id, CLIENTS.NOME
+ORDER BY 
+    total DESC;
+
+
+-- 17 -----------------------------------------------------------------
+SELECT 
+    PRODUCTS.id AS product_id,
+    PRODUCTS.nome AS product_name,
+    SUM(ORDERS_ITEMS.quantify) AS total_quantity_sold,
+    SUM(ORDERS_ITEMS.quantify * orders_items.price) AS total_sales
+FROM 
+    PRODUCTS
+LEFT JOIN 
+    ORDERS_ITEMS ON PRODUCTS.id = ORDERS_ITEMS.product_id
+GROUP BY 
+    PRODUCTS.id, PRODUCTS.NOME
+ORDER BY 
+    total_quantity_sold DESC
+LIMIT 3;
+
+
+-- 18 -----------------------------------------------------------------
+SELECT 
+    CLIENTS.id AS CLIENT_id,
+    clients.nome AS CLIENT_name,
+    SUM(ORDERS_ITEMS.ORDER_ID) AS espending,
+    SUM(ORDERS_ITEMS.ORDER_ID * ORDERS_ITEMS.PRICE) AS total_sales
+FROM 
+    CLIENTS
+LEFT JOIN 
+    ORDERS_ITEMS ON CLIENTS.id = ORDERS_ITEMS.ORDER_id
+GROUP BY 
+    CLIENTS.id, CLIENTS.NOME
+ORDER BY 
+    espending DESC
+LIMIT 3;
+
+
+-- 19 -----------------------------------------------------------------
+SELECT 
+    CLIENTS.id AS client_id,
+    CLIENTS.NOME AS client_name,
+   ROUND(AVG(average_expenditure), 2) AS average_expenditure 
+FROM 
+    CLIENTS
+LEFT JOIN (
+    SELECT 
+        ORDERS.client_id,
+        ORDERS.id AS order_id,
+        SUM(ORDERS_ITEMS.quantify) AS average_expenditure
+    FROM 
+        ORDERS
+    LEFT JOIN 
+        ORDERS_ITEMS ON ORDERS.id = ORDERS_ITEMS.order_id
+    GROUP BY 
+        ORDERS.client_id, ORDERS.id
+) AS OrderQuantities
+ON CLIENTS.id = OrderQuantities.client_id
+GROUP BY 
+    CLIENTS.id, CLIENTS.nome
+ORDER BY 
+   average_expenditure DESC;
+   
+   
+-- 20 -----------------------------------------------------------------
+   SELECT 
+    YEAR(ORDERS.order_date) AS year,
+    MONTH(ORDERS.order_date) AS month,
+    COUNT(DISTINCT ORDERS.id) AS total_orders,
+    COUNT(DISTINCT CLIENTS.id) AS total_clients
+FROM 
+    ORDERS
+LEFT JOIN 
+    CLIENTS ON ORDERS.client_id = CLIENTS.id
+GROUP BY 
+    YEAR(ORDERS.order_date), MONTH(ORDERS.order_date)
+ORDER BY 
+    year, month;
+    
+-- 21 -----------------------------------------------------------------
+    SELECT 
+    PRODUCTS.id AS product_id,
+    PRODUCTS.NOME AS product_name
+FROM 
+    PRODUCTS
+LEFT JOIN 
+    orders_items ON PRODUCTS.id = orders_items.product_id
+WHERE 
+    orders_items.product_id IS NULL;
+
+
+-- 22 -----------------------------------------------------------------
+SELECT 
+    ORDERS.id AS order_id,
+    COUNT(DISTINCT ORDERS_ITEMS.product_id) AS unique_items_count
+FROM 
+    ORDERS
+JOIN 
+    ORDERS_ITEMS ON ORDERS.id = ORDERS_ITEMS.order_id
+GROUP BY 
+    ORDERS.id
+HAVING 
+    COUNT(DISTINCT ORDERS_ITEMS.product_id) > 2;
+ 
+ 
+-- 23 -----------------------------------------------------------------
+SELECT 
+    ORDERS.id AS order_id,
+    COUNT(DISTINCT ORDERS_ITEMS.product_id) AS distinct_item_count
+FROM
+    ORDERS
+        JOIN
+    ORDERS_ITEMS ON ORDERS.id = ORDERS_ITEMS.order_id
+GROUP BY ORDERS.id
+HAVING COUNT(DISTINCT ORDERS_ITEMS.product_id) > 2;
+
+
+-- 24 -----------------------------------------------------------------
+SELECT DISTINCT CLIENTS.id, CLIENTS.nome, CLIENTS.email, DATE_FORMAT(ORDERS.order_date, '%d-%m-%Y') AS formatted_order_date
+FROM CLIENTS
+JOIN ORDERS ON CLIENTS.id = ORDERS.client_id
+WHERE ORDERS.order_date >= CURDATE() - INTERVAL 1 MONTH;
+
+
+-- 25 -----------------------------------------------------------------
+SELECT 
+    CLIENTS.id AS client_id,
+    CLIENTS.NOME AS client_name,
+    round(AVG(total_order_value), 2) AS average_order_value
+FROM 
+    CLIENTS
+JOIN 
+    ORDERS ON CLIENTS.id = ORDERS.client_id
+JOIN 
+    (
+        SELECT 
+            order_id,
+            SUM(price * quantify) AS total_order_value
+        FROM 
+            ORDERS_ITEMS
+        GROUP BY 
+            order_id
+    ) AS OrderTotals ON ORDERS.id = OrderTotals.order_id
+GROUP BY 
+    CLIENTS.id, CLIENTS.NOME
+ORDER BY 
+    average_order_value DESC;
